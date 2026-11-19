@@ -24,8 +24,9 @@ check "draining web01 marks only web01 down" \
 
 if command -v nginx >/dev/null; then
   printf 'events {}\nhttp { include %s/lb.conf; }\n' "$PWD/$OUT" > $OUT/nginx.conf
-  sed -i 's#/var/log/nginx/lb_access.log#/tmp/lb_access.log#' $OUT/lb.conf
-  nginx -t -q -c "$PWD/$OUT/nginx.conf" -g "pid /tmp/nginx-test.pid; error_log /tmp/nginx-test.err;" && pass "rendered LB config passes nginx -t"
+  # test copy: writable log path and an unprivileged port, so nginx -t runs without root
+  sed -i -e 's#/var/log/nginx/lb_access.log#/tmp/lb_access.log#' -e 's/listen [0-9]\+ default_server/listen 18080 default_server/' $OUT/lb.conf
+  check "rendered LB config passes nginx -t" nginx -t -q -c "$PWD/$OUT/nginx.conf" -g "pid /tmp/nginx-test.pid; error_log /tmp/nginx-test.err;"
 fi
 check "sshd hardening rendered" bash -c "grep -q 'PermitRootLogin no' $OUT/sshd.conf && grep -q 'PasswordAuthentication no' $OUT/sshd.conf"
 command -v systemd-analyze >/dev/null && systemd-analyze verify $OUT/hello-dc.service 2>/dev/null && pass "systemd unit verifies" || true
@@ -33,7 +34,7 @@ command -v systemd-analyze >/dev/null && systemd-analyze verify $OUT/hello-dc.se
 # --- app behaviour: health, version, drain ---
 PORT=18765; DRAIN=$(mktemp -u)
 APP_PORT=$PORT APP_VERSION=9.9.9 DRAIN_FILE=$DRAIN python3 roles/webapp/files/app.py >/dev/null 2>&1 &
-pid=$!; trap 'kill $pid 2>/dev/null; rm -rf $OUT' EXIT
+pid=$!; trap 'kill $pid 2>/dev/null || true; rm -rf $OUT' EXIT   # || true: the app is already stopped by the SIGTERM test
 sleep 1
 code() { curl -s -o /dev/null -w '%{http_code}' "localhost:$PORT$1"; }
 check "app /health returns 200" test "$(code /health)" = "200"
