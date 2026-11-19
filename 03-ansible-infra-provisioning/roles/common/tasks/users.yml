@@ -1,0 +1,31 @@
+- name: Users | create admin accounts
+  ansible.builtin.user:
+    name: "{{ item.name }}"
+    comment: "{{ item.comment | default(omit) }}"
+    shell: /bin/bash
+    groups: "{{ ['sudo'] if item.sudo | default(false) else [] }}"
+    append: true
+  loop: "{{ admin_users }}"
+  loop_control: { label: "{{ item.name }}" }
+
+- name: Users | install SSH public keys (exclusive)
+  ansible.posix.authorized_key:
+    user: "{{ item.name }}"
+    key: "{{ item.ssh_key }}"
+    exclusive: true
+  loop: "{{ admin_users }}"
+  loop_control: { label: "{{ item.name }}" }
+
+- name: Users | passwordless sudo for sudo group members
+  ansible.builtin.copy:
+    dest: /etc/sudoers.d/90-admins
+    content: "%sudo ALL=(ALL) NOPASSWD: ALL\n"
+    mode: "0440"
+    validate: visudo -cf %s
+
+- name: Users | remove departed users
+  ansible.builtin.user:
+    name: "{{ item }}"
+    state: absent
+    remove: true
+  loop: "{{ removed_users }}"

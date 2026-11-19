@@ -1,0 +1,24 @@
+common_packages:
+  - curl
+  - vim
+  - htop
+  - jq
+  - git
+  - chrony
+  - ufw
+  - unattended-upgrades
+  - ca-certificates
+timezone: UTC
+admin_users: []
+removed_users: []
+ssh_allow_password_auth: false
+firewall_allowed_tcp_ports: [22]
+firewall_extra_tcp_ports: []
+monitoring_allowed_cidr: 10.0.0.0/8
+sysctl_settings:
+  net.ipv4.tcp_syncookies: 1
+  net.ipv4.conf.all.accept_redirects: 0
+  net.ipv4.conf.all.send_redirects: 0
+  net.ipv4.icmp_echo_ignore_broadcasts: 1
+  vm.swappiness: 10
+  fs.file-max: 200000

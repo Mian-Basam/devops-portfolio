@@ -1,0 +1,3 @@
+lb_listen_port: 80
+lb_algorithm: least_conn
+firewall_extra_tcp_ports: [80]

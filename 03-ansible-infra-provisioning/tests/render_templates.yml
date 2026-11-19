@@ -1,0 +1,21 @@
+# Renders role templates locally from the real inventory so they can be
+# validated with real tools (nginx -t) without any VMs.
+- name: Render templates for validation
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    out: "{{ playbook_dir }}/.rendered"
+  vars_files:
+    - ../roles/nginx_lb/defaults/main.yml
+    - ../roles/webapp/defaults/main.yml
+    - ../inventories/vagrant/group_vars/all.yml
+  tasks:
+    - name: Output dir
+      ansible.builtin.file: { path: "{{ out }}", state: directory, mode: "0755" }
+    - name: Render nginx LB config
+      ansible.builtin.template: { src: ../roles/nginx_lb/templates/lb.conf.j2, dest: "{{ out }}/lb.conf", mode: "0644" }
+    - name: Render systemd unit
+      ansible.builtin.template: { src: ../roles/webapp/templates/hello-dc.service.j2, dest: "{{ out }}/hello-dc.service", mode: "0644" }
+    - name: Render sshd hardening
+      ansible.builtin.template: { src: ../roles/common/templates/sshd_hardening.conf.j2, dest: "{{ out }}/sshd.conf", mode: "0644" }

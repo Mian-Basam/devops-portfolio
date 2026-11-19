@@ -1,0 +1,21 @@
+# Re-render the LB config on every load balancer with a given set of drained hosts.
+# Called from playbooks/rolling_update.yml:
+#   include_role: { name: nginx_lb, tasks_from: set_backends }  with lb_drained_hosts
+- name: LB | render backends (drained={{ lb_drained_hosts | join(',') | default('none', true) }})
+  ansible.builtin.template:
+    src: lb.conf.j2
+    dest: /etc/nginx/conf.d/lb.conf
+    mode: "0644"
+  delegate_to: "{{ lb_host }}"
+  loop: "{{ groups['loadbalancers'] }}"
+  loop_control: { loop_var: lb_host }
+  register: lb_render
+
+# Handlers cannot be notified per delegated loop item, so reload explicitly.
+- name: LB | validate and reload where changed  # noqa: no-handler
+  ansible.builtin.shell: nginx -t && systemctl reload nginx
+  delegate_to: "{{ item.lb_host }}"
+  loop: "{{ lb_render.results }}"
+  loop_control: { label: "{{ item.lb_host }}" }
+  when: item is changed
+  changed_when: true

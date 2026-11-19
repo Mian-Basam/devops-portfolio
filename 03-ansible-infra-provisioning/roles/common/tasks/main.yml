@@ -1,0 +1,59 @@
+- name: Packages | install baseline packages
+  ansible.builtin.apt:
+    name: "{{ common_packages }}"
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Time | set timezone
+  community.general.timezone:
+    name: "{{ timezone }}"
+
+- name: Time | ensure chrony is running
+  ansible.builtin.service:
+    name: chrony
+    state: started
+    enabled: true
+
+- name: Hostname | match inventory name
+  ansible.builtin.hostname:
+    name: "{{ inventory_hostname_short }}"
+
+- name: Hosts | every lab host can resolve the others by name
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: "\\s{{ item }}$"
+    line: "{{ hostvars[item].ansible_host }} {{ item }}"
+  loop: "{{ groups['all'] }}"
+  when: hostvars[item].ansible_host is defined
+
+- name: Users | include user management
+  ansible.builtin.import_tasks: users.yml
+
+- name: SSH | include hardening
+  ansible.builtin.import_tasks: ssh.yml
+
+- name: Kernel | apply sysctl hardening
+  ansible.posix.sysctl:
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
+    sysctl_file: /etc/sysctl.d/60-hardening.conf
+    reload: true
+  loop: "{{ sysctl_settings | dict2items }}"
+
+- name: Firewall | include ufw rules
+  ansible.builtin.import_tasks: firewall.yml
+
+- name: Updates | enable unattended security upgrades
+  ansible.builtin.copy:
+    dest: /etc/apt/apt.conf.d/20auto-upgrades
+    content: |
+      APT::Periodic::Update-Package-Lists "1";
+      APT::Periodic::Unattended-Upgrade "1";
+    mode: "0644"
+
+- name: MOTD | show environment banner
+  ansible.builtin.template:
+    src: motd.j2
+    dest: /etc/motd
+    mode: "0644"

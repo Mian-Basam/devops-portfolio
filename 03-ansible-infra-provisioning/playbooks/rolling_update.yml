@@ -1,0 +1,54 @@
+# Zero-downtime release of a new app version, one server at a time.
+#
+#   ansible-playbook playbooks/rolling_update.yml -e webapp_version=1.1.0
+#
+# For each web server:
+#   1. take it out of the load balancer (marked "down") and wait for in-flight requests
+#   2. deploy the new version and wait until /health is OK and the version matches
+#   3. put it back into the load balancer
+#   4. verify via the LB
+# Any failure stops the run (max_fail_percentage: 0), leaving the rest of the fleet untouched.
+- name: Rolling update of the web tier
+  hosts: webservers
+  become: true
+  serial: 1
+  max_fail_percentage: 0
+  order: inventory
+
+  pre_tasks:
+    - name: Require an explicit version
+      ansible.builtin.assert:
+        that: webapp_version is defined and webapp_version | length > 0
+        fail_msg: "pass -e webapp_version=X.Y.Z"
+      run_once: true
+
+    - name: Drain this host from the load balancer
+      ansible.builtin.include_role:
+        name: nginx_lb
+        tasks_from: set_backends
+      vars:
+        lb_drained_hosts: ["{{ inventory_hostname }}"]
+
+    - name: Let in-flight requests finish
+      ansible.builtin.pause:
+        seconds: 5
+
+  roles:
+    - webapp
+
+  post_tasks:
+    - name: Return this host to the load balancer
+      ansible.builtin.include_role:
+        name: nginx_lb
+        tasks_from: set_backends
+      vars:
+        lb_drained_hosts: []
+
+    - name: Verify through the load balancer
+      ansible.builtin.uri:
+        url: "http://{{ hostvars[groups['loadbalancers'][0]].ansible_host }}/"
+        return_content: true
+      delegate_to: localhost
+      become: false
+      register: via_lb
+      failed_when: via_lb.status != 200

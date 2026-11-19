@@ -1,0 +1,6 @@
+webapp_name: hello-dc
+webapp_user: webapp
+webapp_dir: /opt/hello-dc
+webapp_port: 8000
+webapp_version: "1.0.0"
+webapp_health_retries: 10

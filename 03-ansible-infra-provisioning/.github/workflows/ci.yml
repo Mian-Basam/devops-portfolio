@@ -1,0 +1,39 @@
+name: CI
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Install tools
+        run: |
+          pip install ansible ansible-lint yamllint
+          sudo apt-get update -qq && sudo apt-get install -y -qq nginx shellcheck
+          ansible-galaxy collection install -r requirements.yml
+      - run: shellcheck tests/run_tests.sh
+      - run: ./tests/run_tests.sh
+
+  # Real run of the roles against a throwaway Ubuntu runner (systemd is available there)
+  apply-on-runner:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install ansible && ansible-galaxy collection install -r requirements.yml
+      - name: Provision localhost as both web server and load balancer
+        run: |
+          {
+            echo '[webservers]';    echo 'ci-web ansible_host=127.0.0.1 ansible_connection=local'
+            echo '[loadbalancers]'; echo 'ci-lb ansible_host=127.0.0.1 ansible_connection=local'
+          } > ci.ini
+          ansible-playbook -i ci.ini playbooks/site.yml --skip-tags common -e env_name=ci
+      - name: Idempotency check (second run must change nothing)
+        run: |
+          ansible-playbook -i ci.ini playbooks/site.yml --skip-tags common -e env_name=ci | tee second-run.log
+          grep -E 'ci-(web|lb) .*changed=0' second-run.log | wc -l | grep -q 2
+      - name: Request through the load balancer
+        run: |
+          curl -fsS http://127.0.0.1/ | tee /dev/stderr | grep -q '"version": "1.0.0"'

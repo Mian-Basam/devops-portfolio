@@ -1,0 +1,10 @@
+galaxy_info:
+  role_name: common
+  author: Basil Ahtisham
+  description: Baseline hardening for Ubuntu servers
+  license: MIT
+  min_ansible_version: "2.15"
+  platforms:
+    - name: Ubuntu
+      versions: [jammy, noble]
+dependencies: []

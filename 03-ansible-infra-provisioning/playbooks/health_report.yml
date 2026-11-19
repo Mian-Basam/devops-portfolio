@@ -1,0 +1,20 @@
+# Read-only fleet report: uptime, load, disk, memory, service states.
+#   ansible-playbook playbooks/health_report.yml
+- name: Collect health facts
+  hosts: all
+  become: false
+  gather_facts: true
+  tasks:
+    - name: Service states
+      ansible.builtin.service_facts:
+
+    - name: Report
+      ansible.builtin.debug:
+        msg:
+          - "uptime: {{ (ansible_facts.uptime_seconds / 3600) | round(1) }} h"
+          - "load: {{ ansible_facts.loadavg | default('n/a') }}"
+          - "memory free: {{ ansible_facts.memfree_mb }} MB / {{ ansible_facts.memtotal_mb }} MB"
+          - "root disk free: {{ ((ansible_facts.mounts | selectattr('mount', 'equalto', '/') | first).size_available / 1e9) | round(1) }} GB"
+          - "nginx: {{ ansible_facts.services['nginx.service'].state | default('n/a') }}"
+          - "hello-dc: {{ ansible_facts.services['hello-dc.service'].state | default('n/a') }}"
+          - "node_exporter: {{ ansible_facts.services['node_exporter.service'].state | default('n/a') }}"

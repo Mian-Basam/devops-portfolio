@@ -1,0 +1,18 @@
+env_name: lab
+timezone: Asia/Karachi
+
+admin_users:
+  - name: basil
+    comment: Basil Ahtisham
+    ssh_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExampleKeyReplaceMe basil@laptop"
+    sudo: true
+  - name: deploy
+    comment: CI deploy user
+    ssh_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExampleKeyReplaceMe ci@jenkins"
+    sudo: true
+
+removed_users: []
+
+ssh_allow_password_auth: false
+firewall_allowed_tcp_ports: [22, 9100]
+monitoring_allowed_cidr: 192.168.56.0/24

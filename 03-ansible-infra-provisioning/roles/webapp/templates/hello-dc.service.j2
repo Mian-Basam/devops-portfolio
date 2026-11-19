@@ -1,0 +1,23 @@
+# {{ ansible_managed }}
+[Unit]
+Description={{ webapp_name }} web service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User={{ webapp_user }}
+Group={{ webapp_user }}
+EnvironmentFile={{ webapp_dir }}/app.env
+ExecStart=/usr/bin/python3 {{ webapp_dir }}/app.py
+Restart=on-failure
+RestartSec=2
+RuntimeDirectory={{ webapp_name }}
+# sandboxing
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/run/{{ webapp_name }}
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,25 @@
+- name: LB | install nginx
+  ansible.builtin.apt:
+    name: nginx
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: LB | remove default site
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: Reload nginx
+
+- name: LB | load balancer config from inventory
+  ansible.builtin.template:
+    src: lb.conf.j2
+    dest: /etc/nginx/conf.d/lb.conf
+    mode: "0644"
+  notify: Validate and reload nginx
+
+- name: LB | nginx running
+  ansible.builtin.service:
+    name: nginx
+    state: started
+    enabled: true

@@ -1,0 +1,66 @@
+- name: Webapp | system user
+  ansible.builtin.user:
+    name: "{{ webapp_user }}"
+    system: true
+    shell: /usr/sbin/nologin
+    create_home: false
+
+- name: Webapp | application directory
+  ansible.builtin.file:
+    path: "{{ webapp_dir }}"
+    state: directory
+    owner: root
+    group: "{{ webapp_user }}"
+    mode: "0750"
+
+- name: Webapp | application code
+  ansible.builtin.copy:
+    src: app.py
+    dest: "{{ webapp_dir }}/app.py"
+    owner: root
+    group: "{{ webapp_user }}"
+    mode: "0750"
+  notify: Restart webapp
+
+- name: Webapp | environment file
+  ansible.builtin.template:
+    src: app.env.j2
+    dest: "{{ webapp_dir }}/app.env"
+    owner: root
+    group: "{{ webapp_user }}"
+    mode: "0640"
+  notify: Restart webapp
+
+- name: Webapp | systemd unit
+  ansible.builtin.template:
+    src: hello-dc.service.j2
+    dest: "/etc/systemd/system/{{ webapp_name }}.service"
+    mode: "0644"
+  notify:
+    - Reload systemd
+    - Restart webapp
+
+- name: Webapp | enable and start
+  ansible.builtin.systemd_service:
+    name: "{{ webapp_name }}"
+    state: started
+    enabled: true
+
+- name: Webapp | apply pending restarts before health check
+  ansible.builtin.meta: flush_handlers
+
+- name: Webapp | wait until healthy
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ webapp_port }}/health"
+    status_code: 200
+  register: webapp_health
+  retries: "{{ webapp_health_retries }}"
+  delay: 2
+  until: webapp_health.status == 200
+
+- name: Webapp | verify the expected version is live
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ webapp_port }}/"
+    return_content: true
+  register: webapp_root
+  failed_when: webapp_root.json.version != webapp_version

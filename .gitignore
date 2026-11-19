@@ -1,0 +1,3 @@
+# created by install.sh
+.venv/
+.DS_Store
