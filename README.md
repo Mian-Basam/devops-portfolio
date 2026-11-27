@@ -1,4 +1,38 @@
+<div align="center">
+
 # DevOps Portfolio
+
+### Five progressive DevOps projects, from Linux scripting to CI/CD on Kubernetes
+
+![Bash](https://img.shields.io/badge/Bash-Scripting-4EAA25?style=for-the-badge&logo=gnubash&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![Ansible](https://img.shields.io/badge/Ansible-IaC-EE0000?style=for-the-badge&logo=ansible&logoColor=white)
+![Kubernetes](https://img.shields.io/badge/Kubernetes-CI%2FCD-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white)
+![Prometheus](https://img.shields.io/badge/Prometheus-Monitoring-E6522C?style=for-the-badge&logo=prometheus&logoColor=white)
+
+[**Quick Start**](#how-to-use-the-runsh-scripts) &nbsp;•&nbsp; [**Tech Stack**](#tools-and-technologies-required)
+
+</div>
+
+---
+
+<details>
+<summary><b>Table of contents</b></summary>
+
+- [Overview](#overview)
+- [Purpose](#purpose)
+- [How the projects connect](#how-the-projects-connect)
+- [Project details](#project-details)
+- [Tools and technologies required](#tools-and-technologies-required)
+- [How to use: the run.sh scripts](#how-to-use-the-runsh-scripts)
+- [Quick start per project](#quick-start-per-project)
+- [Ports used](#ports-used)
+- [Repository layout](#repository-layout)
+- [Troubleshooting](#troubleshooting)
+
+</details>
+
+## Overview
 
 Five hands-on DevOps projects that build on each other, from Linux shell
 scripting up to a full CI/CD pipeline with Kubernetes and monitoring. Each
@@ -12,20 +46,6 @@ each one can be started with a single **`run.sh`** script.
 | 3 | [Ansible infrastructure provisioning](03-ansible-infra-provisioning/) | Intermediate | Vagrant/VirtualBox VMs configured by Ansible: hardening, load balancer, app servers, zero-downtime rolling updates and patching |
 | 4 | [Observability stack](04-observability-stack/) | Intermediate → Advanced | Prometheus, Grafana, Loki, Alertmanager, Blackbox, cAdvisor and Zabbix, with chaos endpoints to trigger real alerts |
 | 5 | [PayFlow DevOps pipeline](05-payflow-devops-pipeline/) | Advanced (capstone) | Jenkins / TeamCity / Bitbucket / GitHub Actions pipelines, Trivy scanning, canary deploys with automatic rollback, Kubernetes |
-
----
-
-## Table of contents
-
-1. [Purpose](#purpose)
-2. [How the projects connect](#how-the-projects-connect)
-3. [Project details](#project-details)
-4. [Tools and technologies required](#tools-and-technologies-required)
-5. [How to use: the run.sh scripts](#how-to-use-the-runsh-scripts)
-6. [Quick start per project](#quick-start-per-project)
-7. [Ports used](#ports-used)
-8. [Repository layout](#repository-layout)
-9. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -65,7 +85,7 @@ the Prometheus/Grafana monitoring of project 4.
 
 ## Project details
 
-### 1. Linux Ops Toolkit ([`01-linux-ops-toolkit/`](01-linux-ops-toolkit/))
+### Linux Ops Toolkit ([`01-linux-ops-toolkit/`](01-linux-ops-toolkit/))
 
 Production-style Bash commands for day-to-day server administration:
 
@@ -82,7 +102,7 @@ Scripts return meaningful exit codes, send webhook alerts (Slack/Teams),
 are scheduled with systemd timers or cron, linted with ShellCheck and
 covered by 18 Bats tests. **Linux only** for real use.
 
-### 2. TaskBoard: Docker three-tier app ([`02-docker-three-tier-app/`](02-docker-three-tier-app/))
+### TaskBoard: Docker three-tier app ([`02-docker-three-tier-app/`](02-docker-three-tier-app/))
 
 A small task board web app built to show how containers are packaged,
 connected and operated:
@@ -95,7 +115,7 @@ It uses Docker secrets for the DB password, healthcheck-based startup
 ordering, CPU/memory limits, `--scale api=3` load balancing, `pg_dump`
 backup/restore, pytest unit tests and an end-to-end test script.
 
-### 3. Ansible infrastructure provisioning ([`03-ansible-infra-provisioning/`](03-ansible-infra-provisioning/))
+### Ansible infrastructure provisioning ([`03-ansible-infra-provisioning/`](03-ansible-infra-provisioning/))
 
 Infrastructure as Code for a small on-prem web tier: **lb01** (Nginx load
 balancer) and **web01/web02** (app servers) as VirtualBox VMs created by
@@ -110,7 +130,7 @@ Playbooks cover full provisioning, **zero-downtime rolling updates**
 (drain → deploy → verify → undrain, one server at a time), OS patching
 and a fleet health report. An offline test suite runs 15 checks without VMs.
 
-### 4. Observability stack ([`04-observability-stack/`](04-observability-stack/))
+### Observability stack ([`04-observability-stack/`](04-observability-stack/))
 
 A complete monitoring and alerting platform in Docker Compose:
 
@@ -124,7 +144,7 @@ A complete monitoring and alerting platform in Docker Compose:
 can watch alerts fire and resolve. Alert rules have unit tests (promtool)
 and a live pipeline test.
 
-### 5. PayFlow DevOps pipeline ([`05-payflow-devops-pipeline/`](05-payflow-devops-pipeline/))
+### PayFlow DevOps pipeline ([`05-payflow-devops-pipeline/`](05-payflow-devops-pipeline/))
 
 An end-to-end delivery system for a fintech-style transaction API:
 
@@ -284,7 +304,7 @@ If a script is not executable after cloning or unzipping, run
 
 First, once: `./install.sh` (see [Automatic installation](#automatic-installation-installsh)).
 
-### 1. Linux Ops Toolkit (Linux)
+### Linux Ops Toolkit (Linux)
 
 ```bash
 cd 01-linux-ops-toolkit
@@ -298,7 +318,7 @@ cd 01-linux-ops-toolkit
 ./run.sh demo-linux
 ```
 
-### 2. TaskBoard (Docker)
+### TaskBoard (Docker)
 
 ```bash
 cd 02-docker-three-tier-app
@@ -309,7 +329,7 @@ cd 02-docker-three-tier-app
 ./run.sh stop
 ```
 
-### 3. Ansible lab (VirtualBox + Vagrant)
+### Ansible lab (VirtualBox + Vagrant)
 
 ```bash
 cd 03-ansible-infra-provisioning
@@ -322,7 +342,7 @@ cd 03-ansible-infra-provisioning
 ./run.sh test-linux
 ```
 
-### 4. Observability stack (Docker)
+### Observability stack (Docker)
 
 ```bash
 cd 04-observability-stack
@@ -332,7 +352,7 @@ cd 04-observability-stack
 ./run.sh stop
 ```
 
-### 5. PayFlow pipeline (Python + Docker, optional kind)
+### PayFlow pipeline (Python + Docker, optional kind)
 
 ```bash
 cd 05-payflow-devops-pipeline
@@ -392,3 +412,15 @@ links to its `docs/` folder.
 ---
 
 **Author:** Basil Ahtisham · [LinkedIn](https://linkedin.com/in/mianbasil) · [GitHub](https://github.com/Mian-Basam)
+
+---
+
+<div align="center">
+
+**Built by [Mian Basam Ahmad](https://github.com/Mian-Basam)** · Software Engineer & Tech Lead
+
+[![Blog](https://img.shields.io/badge/Blog-mian--basam.github.io-222222?style=flat-square&logo=githubpages&logoColor=white)](https://mian-basam.github.io) [![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=flat-square&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/mian-basam-ahmad-68b997147/) [![GitHub](https://img.shields.io/badge/GitHub-Mian--Basam-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/Mian-Basam)
+
+<sub>If this project helped you, consider giving it a ⭐</sub>
+
+</div>
